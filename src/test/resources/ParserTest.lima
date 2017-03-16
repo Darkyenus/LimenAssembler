@@ -1,0 +1,20 @@
+def i 0
+def fib[10] 1 1 2 3 5 8 13 21 34 55
+
+main {
+	LI R1 0
+	LI R2 0
+
+	-loop
+	SLU R3 R1 7
+	JE R3 break
+	ADD R1 R1 1
+	JWL R0 loop
+
+	-break
+	ADD R2 R1 0
+	SLL R2 R2 2
+	JWL R0 R2
+
+	JWL R0 main
+}
