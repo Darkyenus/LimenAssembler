@@ -24,6 +24,7 @@ WHITE_SPACE         = [ \t\f]
 "//"[^\r\n]*    {return LINE_COMMENT;}
 "/*"([^"*"]|("*"+[^"*""/"]))*("*"+"/")?     {return BLOCK_COMMENT;}
 
+undefr    {return UNDEFINE_REGISTER;}
 defr    {return DEFINE_REGISTER;}
 def     {return DEFINE_MEMORY;}
 

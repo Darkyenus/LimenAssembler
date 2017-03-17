@@ -32,7 +32,18 @@ class AssemblyParser(text:CharSequence, errorContext: ErrorContext) : TokenParse
             }
 
             // Parse RegisterDefinition
-            //TODO
+            val registerDefinition = parseRegisterDefinition(scope)
+            if (registerDefinition != null) {
+                scope.members.add(registerDefinition)
+                continue
+            }
+
+            // Parse RegisterUndefinition
+            val registerUndefinition = parseRegisterUndefinition(scope)
+            if (registerUndefinition != null) {
+                scope.members.add(registerUndefinition)
+                continue
+            }
 
             // Parse Instruction
             val instruction = parseInstruction(scope)
@@ -171,6 +182,39 @@ class AssemblyParser(text:CharSequence, errorContext: ErrorContext) : TokenParse
         }
         return null
     }
+
+    /**
+     * "defr" <identifier> <register>
+     */
+    fun parseRegisterDefinition(parent: Node):RegisterDefinition? {
+        if (!match(DEFINE_REGISTER)) return null
+        val begin = tokenBegin()
+        val name = parseIdentifierString()
+        if (name == null) {
+            error("Expected register definition identifier")
+        }
+
+        if (match(REGISTER_LITERAL) && name != null) {
+            return RegisterDefinition(name, Register.values()[tokenText()[1] - '0']).init(parent, begin, tokenEnd())
+        }
+        return null
+    }
+
+    /**
+     * "undefr" <identifier>
+     */
+    fun parseRegisterUndefinition(parent: Node):RegisterUndefinition? {
+        if (!match(UNDEFINE_REGISTER)) return null
+        val begin = tokenBegin()
+        val name = parseIdentifierString()
+        if (name == null) {
+            error("Expected register definition identifier")
+            return null
+        }
+
+        return RegisterUndefinition(name).init(parent, begin, tokenEnd())
+    }
+
 
     /**
      * "def" <identifier> ["[" <array size> "]"] ["@" <address>] [initial value]
