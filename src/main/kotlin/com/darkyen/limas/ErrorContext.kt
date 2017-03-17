@@ -32,7 +32,7 @@ class ErrorContext(val fileName:String) {
     fun mark() = messages.size
 
     fun rollback(mark:Int) {
-        while (mark > messages.size) {
+        while (messages.size > mark) {
             messages.removeAt(messages.size - 1)
         }
     }
@@ -59,8 +59,8 @@ class ErrorContext(val fileName:String) {
         ERROR
     }
 
-    fun printMessages(source:CharSequence, level:Level = Level.INFO) {
-        println("$fileName: ${messages.size} messages(s)")
+    fun printMessages(source:CharSequence, level:Level) {
+        println("\n$fileName: ${messages.size} messages(s)")
         var warnings = 0
         var errors = 0
         for (message in messages) {
@@ -70,10 +70,11 @@ class ErrorContext(val fileName:String) {
                 errors++
             }
 
-            if (message.level < level) {
-                println("%7s at %d:%d".format(message.level, source.lineOfIndex(message.location), source.columnOfIndex(message.location)))
-                println(source.previewOfLine(message.location))
+            if (message.level.ordinal >= level.ordinal) {
+                println("%s at %d:%d".format(message.level, source.lineOfIndex(message.location), source.columnOfIndex(message.location)))
                 println(message.message)
+                println(source.previewOfLine(message.location))
+                println()
             }
         }
         println("$warnings warnings, $errors errors")

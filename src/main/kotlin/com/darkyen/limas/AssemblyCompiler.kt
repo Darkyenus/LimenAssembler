@@ -10,7 +10,20 @@ import com.darkyen.limas.Node.Definition.*
 
 object AssemblyCompiler {
 
-    fun resolveAndCheck(rootScope: Scope, errorContext: ErrorContext, continueOnSoftErrors:Boolean):Boolean {
+    class ResolutionResult(val allocations:List<Allocation>) {
+        fun allocatedWords():Long {
+            var highest:Long = 0
+            for ((start, length) in allocations) {
+                val high = start + length
+                if (high > highest) {
+                    highest = high
+                }
+            }
+            return highest
+        }
+    }
+
+    fun resolveAndCheck(rootScope: Scope, errorContext: ErrorContext, continueOnSoftErrors:Boolean):ResolutionResult? {
         val allocations = ArrayList<Allocation>()
 
         fun allocate(start: Long, length: Long, node: Node) {
@@ -132,7 +145,7 @@ object AssemblyCompiler {
             return@traverse true
         }
 
-        if (!success) return false
+        if (!success) return null
 
         // Find unresolved nodes and resolve them (this should be
         traverse(rootScope) { node ->
@@ -159,7 +172,7 @@ object AssemblyCompiler {
             return@traverse true
         }
 
-        if (!success) return false
+        if (!success) return null
 
         // Resolve instructions
         traverse(rootScope) { node ->
@@ -172,7 +185,7 @@ object AssemblyCompiler {
                             val handled = !traverseUp(arg) { regDef ->
                                 if (regDef is RegisterDefinition && regDef.name == arg.reg.identifier) {
                                     arg.reg.resolution = regDef.register
-                                    errorContext.debug(arg.begin, "Resolved register to ${regDef.register}")
+                                    errorContext.debug(arg.begin, "Resolved register '${regDef.name}' to '${regDef.register}'")
                                     return@traverseUp false
                                 } else if (regDef is RegisterUndefinition && regDef.name == arg.reg.identifier) {
                                     errorContext.error(arg.begin, "Can't resolve register because...")
@@ -183,38 +196,41 @@ object AssemblyCompiler {
                             }
 
                             if (!handled) {
-                                errorContext.error(arg.begin, "Can't resolve register identifier ${arg.reg.identifier}")
+                                errorContext.error(arg.begin, "Can't resolve register identifier '${arg.reg.identifier}'")
                                 success = false
                             }
                         }
                         is ArgImmediate -> {
                             if (arg.imm.isResolved()) continue@args
 
-                            val handled = !traverseUp(arg) { memDef ->
+                            errorContext.debug(arg.begin, "Resolving immediate '${arg.imm.identifier}'...")
+                            val handled = !traverseUpForward(arg) { memDef ->
+                                errorContext.debug(memDef.begin, "   ...trying $memDef")
                                 if (memDef is MemoryDefinition && memDef.name == arg.imm.identifier) {
                                     arg.imm.resolution = memDef.address
-                                    errorContext.debug(arg.begin, "Resolved immediate to memory ${memDef.address}")
-                                    return@traverseUp false
+                                    errorContext.debug(arg.begin, "Resolved immediate to memory '${memDef.address}'")
+                                    return@traverseUpForward false
                                 } else if (memDef is Label && memDef.name == arg.imm.identifier) {
                                     arg.imm.resolution = memDef.address
-                                    errorContext.debug(arg.begin, "Resolved immediate to label ${memDef.address}")
+                                    errorContext.debug(arg.begin, "Resolved immediate to label '${memDef.address}'")
+                                    return@traverseUpForward false
                                 } else if (memDef is Scope && memDef.name == arg.imm.identifier) {
                                     if (memDef.group != null) {
                                         errorContext.warn(arg.begin, "Immediate referencing group scope is probably wrong, as jumping there is probably a bug and value at it's address is undefined")
                                     }
                                     arg.imm.resolution = memDef.address
-                                    errorContext.debug(arg.begin, "Resolved immediate to scope ${memDef.address}")
-                                    return@traverseUp false
+                                    errorContext.debug(arg.begin, "Resolved immediate to scope '${memDef.address}'")
+                                    return@traverseUpForward false
                                 } else if (memDef is Scope && memDef.group != null) {
                                     for (def in memDef.members) {
                                         if (def is MemoryDefinition && def.name == arg.imm.identifier) {
                                             arg.imm.resolution = def.address
-                                            errorContext.debug(arg.begin, "Resolved immediate to ${def.address}")
-                                            return@traverseUp false
+                                            errorContext.debug(arg.begin, "Resolved immediate to '${def.address}'")
+                                            return@traverseUpForward false
                                         }
                                     }
                                 }
-                                return@traverseUp  true
+                                return@traverseUpForward true
                             }
 
                             if (!handled) {
@@ -229,7 +245,7 @@ object AssemblyCompiler {
             return@traverse true
         }
 
-        if (!success) return false
+        if (!success) return null
 
         // Translate relative jumps
         traverse(rootScope) { node ->
@@ -253,7 +269,7 @@ object AssemblyCompiler {
             val bitWidth = instructionPart.width
             val value:Long = node.imm.resolution!!
 
-            val masked = value and ((1L shl (bitWidth - 1)) - 1L)
+            val masked = value and ((1L shl bitWidth) - 1L)
             val truncated:Long
             if (signed) {
                 val shift = java.lang.Long.SIZE - bitWidth
@@ -270,7 +286,9 @@ object AssemblyCompiler {
             return@traverse true
         }
 
-        return success
+        if (!success) return null
+
+        return ResolutionResult(allocations)
     }
 
     data class Allocation(val start:Long, val length:Long, val node: Node) : Comparable<Allocation> {

@@ -20,7 +20,7 @@ fun CharSequence.columnOfIndex(of:Int):Int {
 
 fun CharSequence.previewOfLine(index:Int):CharSequence {
     var lineStart = Math.min(index, length)
-    while (lineStart > 0 && this[lineStart] != '\n') {
+    while (lineStart >= 0 && this[lineStart] != '\n') {
         lineStart--
     }
     lineStart++

@@ -47,6 +47,10 @@ sealed class Node {
         fun name():String {
             return this.name ?: "<anonymous>"
         }
+
+        override fun toString(): String {
+            return "${name()}${if (group != null) " :$group" else ""}${if (explicitAddress != -1L) " @$explicitAddress" else ""} { ${members.size} }${if (address != -1L) " at $address" else ""}"
+        }
     }
 
     sealed class Definition(val name:String) : Node() {
@@ -57,11 +61,23 @@ sealed class Node {
             override fun wordSize(inScope: Boolean) = if (inScope && explicitAddress != -1L) 0 else wordSize
 
             val initialValues = ArrayList<Long>()
+
+            override fun toString(): String {
+                return "def $name[$wordSize] ${if (explicitAddress != -1L) " @$explicitAddress" else ""} ${initialValues.joinToString(", ", prefix = "[", postfix = "]")}"
+            }
         }
 
-        class RegisterDefinition(name:String, val register:Register) : Definition(name)
+        class RegisterDefinition(name:String, val register:Register) : Definition(name) {
+            override fun toString(): String {
+                return "defr $name $register"
+            }
+        }
 
-        class RegisterUndefinition(name:String) : Definition(name)
+        class RegisterUndefinition(name:String) : Definition(name) {
+            override fun toString(): String {
+                return "undefr $name"
+            }
+        }
     }
 
     class Instruction(val type: InstructionType) : Node(), MemoryMapped {
@@ -75,11 +91,11 @@ sealed class Node {
             var result = 0L
 
             fun append(value: Long, width:Int) {
-                val mask = (1L shl (width - 1)) - 1
+                val mask = (1L shl width) - 1
                 result = (result shl width) or (value and mask)
             }
 
-            type.codeParts.forEachIndexed { index, part ->
+            type.codeParts.forEach { part ->
                 when (part) {
                     is Part.Static -> {
                         append(part.value.toLong(), part.width)
@@ -94,6 +110,10 @@ sealed class Node {
             }
             return result
         }
+
+        override fun toString(): String {
+            return args.joinToString(" ", prefix = type.mnemonic+" ")
+        }
     }
 
     abstract class Arg : Node() {
@@ -104,14 +124,26 @@ sealed class Node {
         }
     }
 
-    class ArgImmediate(val imm: Resolvable<Long>) : Arg()
+    class ArgImmediate(val imm: Resolvable<Long>) : Arg() {
+        override fun toString(): String {
+            return imm.toString()
+        }
+    }
 
-    class ArgRegister(val reg: Resolvable<Register>) : Arg()
+    class ArgRegister(val reg: Resolvable<Register>) : Arg() {
+        override fun toString(): String {
+            return reg.toString()
+        }
+    }
 
     class Label(val name: String) : Node(), MemoryMapped {
         override var address: Long = -1
 
         override fun wordSize(inScope: Boolean): Long = 0
+
+        override fun toString(): String {
+            return "-$name${if (address != -1L) " at $address" else ""}"
+        }
     }
 
     interface MemoryMapped {
@@ -136,6 +168,16 @@ class Resolvable<To> private constructor(val identifier:String?, var resolution:
     constructor(resolution: To) : this(null, resolution)
 
     fun isResolved():Boolean = resolution != null
+
+    override fun toString(): String {
+        if (identifier == null) {
+            return resolution.toString()
+        } else if (resolution == null) {
+            return identifier.toString()
+        } else {
+            return "$identifier ($resolution)"
+        }
+    }
 }
 
 enum class Register(val code:Long) {
@@ -180,7 +222,33 @@ fun traverseUp(node: Node, visitor: (Node) -> Boolean):Boolean {
             if (index == -1) error("Invalid AST")
             while (index > 0) {
                 index--
-                visitor(parent.members[index])
+                if (!visitor(parent.members[index])) return false
+            }
+        }
+        if(!visitor(parent)) return false
+        current = parent
+        parent = parent.parent
+    }
+}
+
+/**
+ * @param visitor callback, called for every node before in block or before OR after in parent block. Return true to continue, false to stop traversing
+ */
+fun traverseUpForward(node: Node, visitor: (Node) -> Boolean):Boolean {
+    var current = node
+    var parent = node.parent
+    while (true) {
+        if (parent == null) return true
+        if (parent is Scope) {
+            val myIndex = parent.members.indexOf(current)
+            if (myIndex == -1) error("Invalid AST")
+
+            var index = parent.members.size - 1
+            while (index > 0) {
+                index--
+                if (index != myIndex) {
+                    if (!visitor(parent.members[index])) return false
+                }
             }
         }
         if(!visitor(parent)) return false

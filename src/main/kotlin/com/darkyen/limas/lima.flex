@@ -33,14 +33,14 @@ def     {return DEFINE_MEMORY;}
 \[      {return ARRAY_BEGIN;}
 \]      {return ARRAY_END;}
 
+R[0-7]              {return REGISTER_LITERAL;}
+
 [a-zA-Z_][a-zA-Z_0-9]* {return IDENTIFIER;}
 
 \+?[01]+[bB]           {return BINARY_LITERAL;}
 \+?[0-7]+[oO]          {return OCTAL_LITERAL;}
 \+?[0-9a-fA-F]+[hH]    {return HEXADECIMAL_LITERAL;}
 [\-\+]?[0-9]+[dD]?       {return DECIMAL_LITERAL;}
-
-R[0-7]              {return REGISTER_LITERAL;}
 
 "-"                 {return LABEL_PREFIX;}
 
