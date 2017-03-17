@@ -25,6 +25,10 @@ class ErrorContext(val fileName:String) {
         messages.add(Message(Level.INFO, location, message))
     }
 
+    fun debug(location: Int, message: String) {
+        messages.add(Message(Level.DEBUG, location, message))
+    }
+
     fun mark() = messages.size
 
     fun rollback(mark:Int) {

@@ -2,6 +2,7 @@ package com.darkyen.limas
 
 import com.darkyen.limas.LimaToken.*
 import com.darkyen.limas.Node.*
+import com.darkyen.limas.Node.Companion.init
 import com.darkyen.limas.Node.Definition.*
 import java.util.*
 
@@ -26,7 +27,7 @@ class AssemblyParser(text:CharSequence, errorContext: ErrorContext) : TokenParse
             // Parse MemoryDefinition
             val mem = parseMemoryDefinition(scope)
             if (mem != null) {
-                scope.consume(mem)
+                scope.members.add(mem)
                 continue
             }
 
@@ -36,21 +37,21 @@ class AssemblyParser(text:CharSequence, errorContext: ErrorContext) : TokenParse
             // Parse Instruction
             val instruction = parseInstruction(scope)
             if (instruction != null) {
-                scope.consume(instruction)
+                scope.members.add(instruction)
                 continue
             }
 
             // Parse label
             val label = parseLabel(scope)
             if (label != null) {
-                scope.consume(label)
+                scope.members.add(label)
                 continue
             }
 
             // Parse Scope
             val nestedScope = parseScope(scope)
             if (nestedScope != null) {
-                scope.consume(nestedScope)
+                scope.members.add(nestedScope)
                 continue
             }
 
@@ -61,7 +62,7 @@ class AssemblyParser(text:CharSequence, errorContext: ErrorContext) : TokenParse
         // Done
     }
 
-    fun parseLabel(parent: Node<*>):Label? {
+    fun parseLabel(parent: Node):Label? {
         // "-"<identifier>
         if (match(LABEL_PREFIX)) {
             val labelName = parseIdentifierString()
@@ -74,8 +75,8 @@ class AssemblyParser(text:CharSequence, errorContext: ErrorContext) : TokenParse
         return null
     }
 
-    fun parseScope(parent: Node<*>):Scope? {
-        // Scope: [<identifier>[":"<group identifier>]] "{" <scope content> "}"
+    fun parseScope(parent: Node):Scope? {
+        // Scope: [<identifier>] [":"<group identifier>] ["@"<explicit address>] "{" <scope content> "}"
 
         // Try match label group
         val scopeMark = mark()
@@ -83,7 +84,7 @@ class AssemblyParser(text:CharSequence, errorContext: ErrorContext) : TokenParse
         val scopeIdentifier:String? = parseIdentifierString()
 
         var groupIdentifier:String? = null
-        if (scopeIdentifier != null && match(GROUP_SEPARATOR)) {
+        if (match(GROUP_SEPARATOR)) {
             groupIdentifier = parseIdentifierString()
             if (groupIdentifier == null) {
                 error("Group identifier expected")
@@ -91,7 +92,7 @@ class AssemblyParser(text:CharSequence, errorContext: ErrorContext) : TokenParse
         }
         var address:Long = -1
         if (match(ADDRESS_SPECIFIER)) {
-            val a = parseIntegerLiteralLong()
+            val a = parseIntegerLiteral()
             if (a == null) {
                 error("Address specifier expected")
             } else {
@@ -113,7 +114,7 @@ class AssemblyParser(text:CharSequence, errorContext: ErrorContext) : TokenParse
         }
     }
 
-    fun parseInstruction(parent: Node<*>):Instruction? {
+    fun parseInstruction(parent: Node):Instruction? {
         val instructionMark = mark()
         if (match(IDENTIFIER)) {
             val instructionBegin = tokenBegin()
@@ -136,32 +137,22 @@ class AssemblyParser(text:CharSequence, errorContext: ErrorContext) : TokenParse
                     when (asmPart) {
                         is Part.Immediate -> {
                             // Parse number or memory tag
-                            val literal = parseIntegerLiteral(inst)
+                            val literal = parseArgImmediate(inst)
                             if (literal != null) {
-                                inst.children.add(literal)
+                                inst.args.add(literal)
                             } else {
-                                val tag = parseIdentifier(inst)
-                                if (tag != null) {
-                                    inst.children.add(tag)
-                                } else {
-                                    wrong = true
-                                    error("Expected literal or memory tag, got ${peek()}")
-                                }
+                                wrong = true
+                                error("Expected literal or memory tag, got ${peek()}")
                             }
                         }
                         is Part.Register -> {
                             // Parse register literal or register tag
-                            val literal = parseRegisterLiteral(inst)
+                            val literal = parseArgRegister(inst)
                             if (literal != null) {
-                                inst.children.add(literal)
+                                inst.args.add(literal)
                             } else {
-                                val tag = parseIdentifier(inst)
-                                if (tag != null) {
-                                    inst.children.add(tag)
-                                } else {
-                                    wrong = true
-                                    error("Expected literal or register tag, got ${peek()}")
-                                }
+                                wrong = true
+                                error("Expected literal or register tag, got ${peek()}")
                             }
                         }
                         else ->
@@ -184,7 +175,7 @@ class AssemblyParser(text:CharSequence, errorContext: ErrorContext) : TokenParse
     /**
      * "def" <identifier> ["[" <array size> "]"] ["@" <address>] [initial value]
      */
-    fun parseMemoryDefinition(parent:Node<*>):MemoryDefinition? {
+    fun parseMemoryDefinition(parent:Node):MemoryDefinition? {
         if (!match(DEFINE_MEMORY)) return null
         val definitionBegin = tokenBegin()
 
@@ -195,7 +186,7 @@ class AssemblyParser(text:CharSequence, errorContext: ErrorContext) : TokenParse
 
         var byteSize:Long = 1
         if (match(ARRAY_BEGIN)) {
-            val arraySize = parseIntegerLiteralLong()
+            val arraySize = parseIntegerLiteral()
             if (arraySize != null) {
                 byteSize = arraySize
             } else {
@@ -210,7 +201,7 @@ class AssemblyParser(text:CharSequence, errorContext: ErrorContext) : TokenParse
 
         var address:Long = -1
         if (match(ADDRESS_SPECIFIER)) {
-            val a = parseIntegerLiteralLong()
+            val a = parseIntegerLiteral()
             if (a == null) {
                 error("Expected address literal after '@'")
             } else {
@@ -220,7 +211,7 @@ class AssemblyParser(text:CharSequence, errorContext: ErrorContext) : TokenParse
 
         val initialValues = ArrayList<Long>()
         while (true) {
-            val i = parseIntegerLiteralLong()
+            val i = parseIntegerLiteral()
             if (i != null) {
                 initialValues.add(i)
             } else {
@@ -238,7 +229,7 @@ class AssemblyParser(text:CharSequence, errorContext: ErrorContext) : TokenParse
         }
     }
 
-    fun parseIntegerLiteralLong():Long? {
+    fun parseIntegerLiteral():Long? {
         val base:Int
         when (peek()) {
             BINARY_LITERAL -> base = 2
@@ -258,11 +249,6 @@ class AssemblyParser(text:CharSequence, errorContext: ErrorContext) : TokenParse
         return java.lang.Long.parseLong(text, base)
     }
 
-    fun parseIntegerLiteral(parent:Node<*>):IntegerLiteral? {
-        val number = parseIntegerLiteralLong() ?: return null
-        return IntegerLiteral(number).init(parent, tokenBegin(), tokenEnd())
-    }
-
     fun parseIdentifierString():String? {
         if (peek() == IDENTIFIER) {
             next()
@@ -272,14 +258,30 @@ class AssemblyParser(text:CharSequence, errorContext: ErrorContext) : TokenParse
         }
     }
 
-    fun parseIdentifier(parent:Node<*>):Identifier? {
-        val name = parseIdentifierString() ?: return null
-        return Identifier(name).init(parent, tokenBegin(), tokenEnd())
+    fun parseArgImmediate(parent:Node): ArgImmediate? {
+        val number = parseIntegerLiteral()
+        if (number != null) {
+            return ArgImmediate(Resolvable(number)).init(parent, tokenBegin(), tokenEnd())
+        }
+
+        val identifier = parseIdentifierString()
+        if (identifier != null) {
+            return ArgImmediate(Resolvable(identifier)).init(parent, tokenBegin(), tokenEnd())
+        }
+
+        return null
     }
 
-    fun parseRegisterLiteral(parent:Node<*>):RegisterLiteral? {
+    fun parseArgRegister(parent:Node): ArgRegister? {
         if (match(REGISTER_LITERAL)) {
-            return RegisterLiteral((tokenText()[1] - '0').toByte()).init(parent, tokenBegin(), tokenEnd())
-        } else return null
+            return ArgRegister(Resolvable(Register.values()[tokenText()[1] - '0'])).init(parent, tokenBegin(), tokenEnd())
+        }
+
+        val identifier = parseIdentifierString()
+        if (identifier != null) {
+            return ArgRegister(Resolvable(identifier)).init(parent, tokenBegin(), tokenEnd())
+        }
+
+        return null
     }
 }
