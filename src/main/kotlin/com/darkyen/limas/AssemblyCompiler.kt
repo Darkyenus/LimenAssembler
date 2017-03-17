@@ -23,6 +23,26 @@ object AssemblyCompiler {
         }
     }
 
+    private fun resolveImmediate(from:Node, identifier:String?):Pair<Node, Long>? {
+        traverseUpForward(from) { memDef ->
+            if (memDef is MemoryDefinition && memDef.name == identifier) {
+                return Pair(memDef, memDef.address)
+            } else if (memDef is Label && memDef.name == identifier) {
+                return Pair(memDef, memDef.address)
+            } else if (memDef is Scope && memDef.name == identifier) {
+                return Pair(memDef, memDef.address)
+            } else if (memDef is Scope && memDef.group != null) {
+                for (def in memDef.members) {
+                    if (def is MemoryDefinition && def.name == identifier) {
+                        return Pair(memDef, memDef.address)
+                    }
+                }
+            }
+            return@traverseUpForward true
+        }
+        return null
+    }
+
     fun resolveAndCheck(rootScope: Scope, errorContext: ErrorContext, continueOnSoftErrors:Boolean):ResolutionResult? {
         val allocations = ArrayList<Allocation>()
 
@@ -203,39 +223,18 @@ object AssemblyCompiler {
                         is ArgImmediate -> {
                             if (arg.imm.isResolved()) continue@args
 
-                            errorContext.debug(arg.begin, "Resolving immediate '${arg.imm.identifier}'...")
-                            val handled = !traverseUpForward(arg) { memDef ->
-                                errorContext.debug(memDef.begin, "   ...trying $memDef")
-                                if (memDef is MemoryDefinition && memDef.name == arg.imm.identifier) {
-                                    arg.imm.resolution = memDef.address
-                                    errorContext.debug(arg.begin, "Resolved immediate to memory '${memDef.address}'")
-                                    return@traverseUpForward false
-                                } else if (memDef is Label && memDef.name == arg.imm.identifier) {
-                                    arg.imm.resolution = memDef.address
-                                    errorContext.debug(arg.begin, "Resolved immediate to label '${memDef.address}'")
-                                    return@traverseUpForward false
-                                } else if (memDef is Scope && memDef.name == arg.imm.identifier) {
-                                    if (memDef.group != null) {
-                                        errorContext.warn(arg.begin, "Immediate referencing group scope is probably wrong, as jumping there is probably a bug and value at it's address is undefined")
-                                    }
-                                    arg.imm.resolution = memDef.address
-                                    errorContext.debug(arg.begin, "Resolved immediate to scope '${memDef.address}'")
-                                    return@traverseUpForward false
-                                } else if (memDef is Scope && memDef.group != null) {
-                                    for (def in memDef.members) {
-                                        if (def is MemoryDefinition && def.name == arg.imm.identifier) {
-                                            arg.imm.resolution = def.address
-                                            errorContext.debug(arg.begin, "Resolved immediate to '${def.address}'")
-                                            return@traverseUpForward false
-                                        }
-                                    }
-                                }
-                                return@traverseUpForward true
-                            }
-
-                            if (!handled) {
+                            val resolution = resolveImmediate(arg, arg.imm.identifier)
+                            if (resolution == null) {
                                 errorContext.error(arg.begin, "Can't resolve immediate identifier ${arg.imm.identifier}")
                                 success = false
+                            } else {
+                                val (resolvedToNode, address) = resolution
+
+                                if (resolvedToNode is Scope && resolvedToNode.group != null) {
+                                    errorContext.warn(arg.begin, "Immediate referencing group scope is probably wrong, as jumping there is probably a bug and value at it's address is undefined")
+                                }
+
+                                arg.imm.resolution = address
                             }
                         }
                     }

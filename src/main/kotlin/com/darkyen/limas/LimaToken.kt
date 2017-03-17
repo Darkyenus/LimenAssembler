@@ -31,6 +31,7 @@ enum class LimaToken {
     REGISTER_LITERAL,
 
     IDENTIFIER,
+    REGISTER_IDENTIFIER,
 
     UNKNOWN
 }

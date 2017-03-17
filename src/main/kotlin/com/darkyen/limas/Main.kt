@@ -75,7 +75,7 @@ fun main(args: Array<String>) {
     val output:File?
     if (options["out"] == null) {
         output = File(".").canonicalFile
-    } else if (options["out"] == "-") {
+    } else if (options["out"] == "") {
         output = null
     } else {
         output = File(options["out"]).canonicalFile

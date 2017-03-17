@@ -23,7 +23,7 @@ sealed class Node {
 
                 var a = address
                 for (member in members) {
-                    if (member is MemoryMapped) {
+                    if (member is MemoryMapped && member.explicitAddress == -1L) {
                         member.address = a
                         a += member.wordSize(true)
                     }
@@ -234,7 +234,7 @@ fun traverseUp(node: Node, visitor: (Node) -> Boolean):Boolean {
 /**
  * @param visitor callback, called for every node before in block or before OR after in parent block. Return true to continue, false to stop traversing
  */
-fun traverseUpForward(node: Node, visitor: (Node) -> Boolean):Boolean {
+inline fun traverseUpForward(node: Node, visitor: (Node) -> Boolean):Boolean {
     var current = node
     var parent = node.parent
     while (true) {

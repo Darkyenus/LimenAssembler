@@ -1,10 +1,10 @@
-defr return R6
+defr $return R6
 
 main@0 {
 	LI R4 0
 	LIH R4 4
 	SRL R5 R4 3
-	JWL return R5
+	JWL $return R5
 	LIL R4 0
 	JWL R0 R4
 }
@@ -17,5 +17,5 @@ proc@128 {
 }
 
 jump_pad@192 {
-	JWL R0 return
+	JWL R0 $return
 }

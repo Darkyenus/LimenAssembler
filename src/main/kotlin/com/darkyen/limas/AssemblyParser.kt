@@ -189,7 +189,7 @@ class AssemblyParser(text:CharSequence, errorContext: ErrorContext) : TokenParse
     fun parseRegisterDefinition(parent: Node):RegisterDefinition? {
         if (!match(DEFINE_REGISTER)) return null
         val begin = tokenBegin()
-        val name = parseIdentifierString()
+        val name = parseRegisterIdentifierString()
         if (name == null) {
             error("Expected register definition identifier")
         }
@@ -206,7 +206,7 @@ class AssemblyParser(text:CharSequence, errorContext: ErrorContext) : TokenParse
     fun parseRegisterUndefinition(parent: Node):RegisterUndefinition? {
         if (!match(UNDEFINE_REGISTER)) return null
         val begin = tokenBegin()
-        val name = parseIdentifierString()
+        val name = parseRegisterIdentifierString()
         if (name == null) {
             error("Expected register definition identifier")
             return null
@@ -302,6 +302,19 @@ class AssemblyParser(text:CharSequence, errorContext: ErrorContext) : TokenParse
         }
     }
 
+    fun parseRegisterIdentifierString():String? {
+        if (peek() == IDENTIFIER) {
+            error("Expected register identifier, but got standard identifier. Did you forgot '$'?", tokenEnd())
+            return null
+        }
+        if (peek() == REGISTER_IDENTIFIER) {
+            next()
+            return tokenText().removePrefix("$")
+        } else {
+            return null
+        }
+    }
+
     fun parseArgImmediate(parent:Node): ArgImmediate? {
         val number = parseIntegerLiteral()
         if (number != null) {
@@ -321,7 +334,7 @@ class AssemblyParser(text:CharSequence, errorContext: ErrorContext) : TokenParse
             return ArgRegister(Resolvable(Register.values()[tokenText()[1] - '0'])).init(parent, tokenBegin(), tokenEnd())
         }
 
-        val identifier = parseIdentifierString()
+        val identifier = parseRegisterIdentifierString()
         if (identifier != null) {
             return ArgRegister(Resolvable(identifier)).init(parent, tokenBegin(), tokenEnd())
         }
