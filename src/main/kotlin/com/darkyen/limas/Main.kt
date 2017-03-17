@@ -59,6 +59,7 @@ fun main(args: Array<String>) {
         println(" -format <format>   set output format, allowed formats are:")
         println("                        bin - binary format, machine code without comments, undefined areas zeroed")
         println("                        ascii-bin - ascii binary, one address/line, with content comment separated by \\t, undefined lines empty")
+        println("                        vhdl - ascii binary formatted for vhdl")
         println(" -lenient           be lenient and don't halt compilation on ignorable errors")
         println(" -verbose           be verbose")
         println(" -log <level>       change log level")
@@ -218,6 +219,53 @@ enum class ResultFormat(val cliName:String, val fileSuffix:String) {
             }
             printer.flush()
         }
+    },
+    VHDL("vhdl", "txt") {
+        override fun output(program: Node.Scope, resolutionResult: AssemblyCompiler.ResolutionResult, to: OutputStream) {
+            val lines = arrayOfNulls<CharSequence>(resolutionResult.allocatedWords().toInt())
+
+            AssemblyCompiler.collectMemoryElements(program, object : AssemblyCompiler.BinaryGeneratingAssemblyCollector() {
+                override fun collect(address: Long, value: Long, node: Node) {
+                    val sb = StringBuilder()
+
+                    sb.append(address).append(" => \"")
+
+                    for (i in IntProgression.fromClosedRange(15, 0, -1)) {
+                        if ((value and (1L shl i)) == 0L) {
+                            sb.append('0')
+                        } else {
+                            sb.append('1')
+                        }
+                    }
+
+                    sb.append("\",")
+
+                    if (node is Node.MemoryMapped && node.address == address) {
+                        sb.append("\t-- ")
+                        sb.append(node)
+                    }
+
+                    lines[address.toInt()] = sb
+                }
+            })
+
+            val printer = OutputStreamWriter(to, StandardCharsets.UTF_8)
+            var lastAddress = -1
+            for ((address, line) in lines.withIndex()) {
+                if (line == null) {
+                    if (address == lastAddress + 1) {
+                        printer.append('\n')
+                    }
+                    continue
+                }
+
+                lastAddress = address
+                printer.append(line)
+                printer.append('\n')
+            }
+            printer.flush()
+        }
+
     };
 
     abstract fun output(program:Node.Scope, resolutionResult: AssemblyCompiler.ResolutionResult, to:OutputStream)

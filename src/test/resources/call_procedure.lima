@@ -1,0 +1,21 @@
+defr return R6
+
+main@0 {
+	LI R4 0
+	LIH R4 4
+	SRL R5 R4 3
+	JWL return R5
+	LIL R4 0
+	JWL R0 R4
+}
+
+proc@128 {
+	SUB R4 R4 R5
+	SRL R4 R4 1
+	LIH R4 0
+	JWL R0 R4
+}
+
+jump_pad@192 {
+	JWL R0 return
+}
