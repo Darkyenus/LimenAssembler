@@ -9,10 +9,6 @@ class ErrorContext(val fileName:String) {
 
     private val messages = ArrayList<Message>()
 
-    fun log(message: Message) {
-        messages.add(message)
-    }
-
     fun error(location: Int, message: String) {
         messages.add(Message(Level.ERROR, location, message))
     }

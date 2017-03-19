@@ -260,42 +260,17 @@ inline fun traverseUpForward(node: Node, visitor: (Node) -> Boolean):Boolean {
             if (myIndex == -1) error("Invalid AST")
 
             var index = parent.members.size - 1
-            while (index > 0) {
-                index--
+            while (index >= 0) {
                 if (index != myIndex) {
                     if (!visitor(parent.members[index])) return false
                 }
+                index--
             }
         }
         if(!visitor(parent)) return false
         current = parent
         parent = parent.parent
     }
-}
-
-/**
- * @param visitor callback, called for every node after in block and subsequent nested blocks. Return true to continue, false to stop traversing
- */
-fun traverseDown(node: Node, visitor: (Node) -> Boolean):Boolean {
-    var current = node
-    var parent = node.parent
-    while (parent !is Scope) {
-        if (parent == null) {
-            error("node $node is not in any scope")
-        }
-        current = parent
-        parent = parent.parent
-    }
-    val parentScope:Scope = parent
-
-    val index = parentScope.members.indexOf(current)
-    if (index == -1) error("Invalid AST")
-    val membersSize = parentScope.members.size
-
-    for (i in (index + 1)..membersSize) {
-        if(!traverse(parentScope.members[i], visitor)) return false
-    }
-    return true
 }
 
 private class InstructionBuilder(val mnemonic:String) {
