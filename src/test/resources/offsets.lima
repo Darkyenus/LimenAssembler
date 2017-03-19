@@ -14,7 +14,7 @@ main {
 
 handler {
 	defr $sum R4
-	defr $numbers R5
+	defr $numbers //R5
 
 	def numbers[3] 1 2 3
 	def sum@1024

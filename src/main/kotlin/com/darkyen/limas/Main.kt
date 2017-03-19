@@ -90,7 +90,7 @@ fun main(args: Array<String>) {
 
     if (inputFiles.isEmpty()) {
         InputStreamReader(System.`in`).use { reader ->
-            inputStrings.add(reader.readText())
+            inputStrings.add(reader.readText().replace("\t", "    "))
             inputStringsSources.add("<stdin>")
         }
     } else {
@@ -98,7 +98,7 @@ fun main(args: Array<String>) {
             val file = File(fileName)
             if (file.isFile) {
                 FileReader(file).use { reader ->
-                    inputStrings.add(reader.readText())
+                    inputStrings.add(reader.readText().replace("\t", "    "))
                     inputStringsSources.add(file.name)
                 }
             } else {

@@ -203,7 +203,8 @@ enum class Register(val code:Long) {
     R4(4),
     R5(5),
     R6(6),
-    R7(7)
+    R7(7),
+    INVALID(-1)
 }
 
 /**

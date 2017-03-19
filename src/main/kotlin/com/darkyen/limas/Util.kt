@@ -19,11 +19,17 @@ fun CharSequence.columnOfIndex(of:Int):Int {
 }
 
 fun CharSequence.previewOfLine(index:Int):CharSequence {
-    var lineStart = Math.min(index, length)
-    while (lineStart >= 0 && this[lineStart] != '\n') {
+    var lineStart = Math.min(index - 1, length)
+    while (true) {
+        if (lineStart <= 0) {
+            lineStart = 0
+            break
+        } else if (this[lineStart] == '\n') {
+            lineStart += 1
+            break
+        }
         lineStart--
     }
-    lineStart++
 
     var lineEnd = Math.max(index, 0)
     while (lineEnd < length && this[lineEnd] != '\n') {
@@ -42,26 +48,3 @@ fun CharSequence.previewOfLine(index:Int):CharSequence {
 
     return sb
 }
-
-/*
-override fun toString(): String {
-        val sb = StringBuilder()
-        for (i in (pos-20..pos-1)) {
-            if (i >= 0 && i < data.size) {
-                sb.append(data[i])
-            }
-        }
-        sb.append(" | ")
-        for (i in (pos..pos+20)) {
-            if (i >= 0 && i < data.size) {
-                sb.append(data[i])
-            }
-        }
-
-        if (eof()) {
-            sb.append(" [EOF]")
-        }
-
-        return sb.toString()
-    }
- */

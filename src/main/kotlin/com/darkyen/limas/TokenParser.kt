@@ -76,7 +76,8 @@ abstract class TokenParser(val text:CharSequence, val log: ErrorContext) {
 
     fun next():LimaToken {
         if (eof()) throw IllegalStateException("Can't next, EOF")
-        return tokens[position++]
+        position++
+        return tokens[position]
     }
 
     fun match(token: LimaToken, error:String? = null):Boolean {
@@ -91,15 +92,15 @@ abstract class TokenParser(val text:CharSequence, val log: ErrorContext) {
         }
     }
 
-    fun error(message:String, position: Int = tokenBegin()) {
+    fun error(message:String, position: Int = tokenEnd()) {
         log.error(position, message)
     }
 
-    fun warn(message:String, position: Int = tokenBegin()) {
+    fun warn(message:String, position: Int = tokenEnd()) {
         log.warn(position, message)
     }
 
-    fun info(message:String, position: Int = tokenBegin()) {
+    fun info(message:String, position: Int = tokenEnd()) {
         log.info(position, message)
     }
 

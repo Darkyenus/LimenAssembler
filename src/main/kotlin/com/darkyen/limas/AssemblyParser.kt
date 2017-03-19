@@ -9,14 +9,17 @@ import java.util.*
 /**
  * Notes:
  * | = pin
+ * || = or
  */
 class AssemblyParser(text:CharSequence, errorContext: ErrorContext) : TokenParser(text, errorContext){
 
     /**
-     * Scope :=
-     *      Memory Definition
-     *      Register Definition
-     *      Instruction
+     * Scope := Memory Definition
+     *       || Register Definition
+     *       || Register Undefinition
+     *       || Instruction
+     *       || Label
+     *       || Scope
      */
     fun parseScopeBody(scope: Scope) {
         while (true) {
@@ -66,29 +69,32 @@ class AssemblyParser(text:CharSequence, errorContext: ErrorContext) : TokenParse
                 continue
             }
 
-
             // Unknown
-            error("Invalid token ${next()} - ${tokenText()}")
+            val invalidToken = next()
+            val invalidTokenText = tokenText()
+            error("Invalid token \"$invalidTokenText\" ($invalidToken)")
         }
         // Done
     }
 
+    /**
+     * "-" | <identifier>
+     */
     fun parseLabel(parent: Node):Label? {
-        // "-"<identifier>
         if (match(LABEL_PREFIX)) {
             val labelName = parseIdentifierString()
             if (labelName == null) {
                 error("Expected label name, got ${peek()}")
-                return null
             }
-            return Label(labelName).init(parent, tokenBegin(), tokenEnd())
+            return Label(labelName ?: "<invalid>").init(parent, tokenBegin(), tokenEnd())
         }
         return null
     }
 
+    /**
+     * [<identifier>] [":"<group identifier>] ["@"<explicit address>] "{" | <scope content> "}"
+     */
     fun parseScope(parent: Node):Scope? {
-        // Scope: [<identifier>] [":"<group identifier>] ["@"<explicit address>] "{" <scope content> "}"
-
         // Try match label group
         val scopeMark = mark()
 
@@ -125,6 +131,9 @@ class AssemblyParser(text:CharSequence, errorContext: ErrorContext) : TokenParse
         }
     }
 
+    /**
+     * <identifier of instruction> | <argument>*
+     */
     fun parseInstruction(parent: Node):Instruction? {
         val instructionMark = mark()
         if (match(IDENTIFIER)) {
@@ -184,7 +193,7 @@ class AssemblyParser(text:CharSequence, errorContext: ErrorContext) : TokenParse
     }
 
     /**
-     * "defr" <identifier> <register>
+     * "defr" | <identifier> <register>
      */
     fun parseRegisterDefinition(parent: Node):RegisterDefinition? {
         if (!match(DEFINE_REGISTER)) return null
@@ -194,30 +203,34 @@ class AssemblyParser(text:CharSequence, errorContext: ErrorContext) : TokenParse
             error("Expected register definition identifier")
         }
 
-        if (match(REGISTER_LITERAL) && name != null) {
-            return RegisterDefinition(name, Register.values()[tokenText()[1] - '0']).init(parent, begin, tokenEnd())
+        val registerLiteral:Register
+        if (match(REGISTER_LITERAL, "Expected register literal")) {
+            registerLiteral = Register.values()[tokenText()[1] - '0']
+        } else {
+            registerLiteral = Register.INVALID
         }
-        return null
+
+        return RegisterDefinition(name ?: "<invalid>", registerLiteral).init(parent, begin, tokenEnd())
     }
 
     /**
-     * "undefr" <identifier>
+     * "undefr" | <identifier>
      */
     fun parseRegisterUndefinition(parent: Node):RegisterUndefinition? {
         if (!match(UNDEFINE_REGISTER)) return null
         val begin = tokenBegin()
         val name = parseRegisterIdentifierString()
+
         if (name == null) {
             error("Expected register definition identifier")
-            return null
         }
 
-        return RegisterUndefinition(name).init(parent, begin, tokenEnd())
+        return RegisterUndefinition(name ?: "<invalid>").init(parent, begin, tokenEnd())
     }
 
 
     /**
-     * "def" <identifier> ["[" <array size> "]"] ["@" <address>] [initial value]
+     * "def" | <identifier> ["[" <array size> "]"] ["@" <address>] [initial value]
      */
     fun parseMemoryDefinition(parent:Node):MemoryDefinition? {
         if (!match(DEFINE_MEMORY)) return null
@@ -273,6 +286,14 @@ class AssemblyParser(text:CharSequence, errorContext: ErrorContext) : TokenParse
         }
     }
 
+    /**
+     * Limen Alpha Programmer's Manual - 5.1
+     * • Decimal - <digits(0-9)> or <digits(0-9)>D or <digits(0-9)>d,
+     * • Hexadecimal - <digits(0-F or 0-f)>H or <digits(0-F or 0-f)>h,
+     * • Octal - <digits(0-7)>O or <digits(0-7)>o,
+     * • Binary - <digits(0,1)>B or <digits(0,1)>b.
+     * Negative numbers must be expressed only in one of decimal radix formats.
+     */
     fun parseIntegerLiteral():Long? {
         val base:Int
         when (peek()) {
@@ -293,6 +314,9 @@ class AssemblyParser(text:CharSequence, errorContext: ErrorContext) : TokenParse
         return java.lang.Long.parseLong(text, base)
     }
 
+    /**
+     * <identifier>
+     */
     fun parseIdentifierString():String? {
         if (peek() == IDENTIFIER) {
             next()
@@ -302,6 +326,9 @@ class AssemblyParser(text:CharSequence, errorContext: ErrorContext) : TokenParse
         }
     }
 
+    /**
+     * $<identifier>
+     */
     fun parseRegisterIdentifierString():String? {
         if (peek() == IDENTIFIER) {
             error("Expected register identifier, but got standard identifier. Did you forgot '$'?", tokenEnd())
@@ -315,6 +342,9 @@ class AssemblyParser(text:CharSequence, errorContext: ErrorContext) : TokenParse
         }
     }
 
+    /**
+     * <number literal> || <identifier> ["[" <number literal> "]"] [">" || "<"]?
+     */
     fun parseArgImmediate(parent:Node): ArgImmediate? {
         fun parseBytePart():ArgImmediate.BytePart {
             if (match(HIGH_BYTE)) {
@@ -352,6 +382,9 @@ class AssemblyParser(text:CharSequence, errorContext: ErrorContext) : TokenParse
         return null
     }
 
+    /**
+     * <register identifier> || <register literal>
+     */
     fun parseArgRegister(parent:Node): ArgRegister? {
         if (match(REGISTER_LITERAL)) {
             return ArgRegister(Resolvable(null, Register.values()[tokenText()[1] - '0'])).init(parent, tokenBegin(), tokenEnd())
