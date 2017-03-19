@@ -129,6 +129,27 @@ object AssemblyCompiler {
                 }
             }
 
+            // Check for registers used when they are bound to register identifier
+            if (node is ArgRegister && node.reg.resolution != null) {
+                val undefined = ArrayList<String>()
+                traverseUp(node) {
+                    if (it is RegisterDefinition) {
+                        if (undefined.contains(it.name)) {
+                            undefined.remove(it.name)
+                        } else {
+                            if (it.register == node.reg.resolution) {
+                                errorContext.warn(node.begin, "Using register literal which is currently bound to $${it.name}")
+                                return@traverseUp false
+                            }
+                        }
+                    } else if (it is RegisterUndefinition && !undefined.contains(it.name)) {
+                        undefined.add(it.name)
+                    }
+
+                    return@traverseUp true
+                }
+            }
+
             return@traverse true
         }
 
