@@ -124,13 +124,31 @@ sealed class Node {
         }
     }
 
-    class ArgImmediate(val imm: Resolvable<Long>) : Arg() {
+    /**
+     * @param imm Triple of identifier, word offset and byte part
+     */
+    class ArgImmediate(val imm: Resolvable<Triple<String, Long, BytePart>,Long>) : Arg() {
+
         override fun toString(): String {
             return imm.toString()
         }
+
+        enum class BytePart(val keyword:String) {
+            WORD(""),
+            HIGH_BYTE("<"),
+            LOW_BYTE(">");
+
+            fun adjust(value:Long):Long {
+                return when (this) {
+                    WORD -> value
+                    HIGH_BYTE -> (value shr 8) and 0xFF
+                    LOW_BYTE -> value and 0xFF
+                }
+            }
+        }
     }
 
-    class ArgRegister(val reg: Resolvable<Register>) : Arg() {
+    class ArgRegister(val reg: Resolvable<String, Register>) : Arg() {
         override fun toString(): String {
             return reg.toString()
         }
@@ -163,10 +181,7 @@ sealed class Node {
     }
 }
 
-class Resolvable<To> private constructor(val identifier:String?, var resolution:To?) {
-    constructor(identifier: String) : this(identifier, null)
-    constructor(resolution: To) : this(null, resolution)
-
+class Resolvable<out From, To> constructor(val identifier:From?, var resolution:To?) {
     fun isResolved():Boolean = resolution != null
 
     override fun toString(): String {

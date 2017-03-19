@@ -316,14 +316,37 @@ class AssemblyParser(text:CharSequence, errorContext: ErrorContext) : TokenParse
     }
 
     fun parseArgImmediate(parent:Node): ArgImmediate? {
+        fun parseBytePart():ArgImmediate.BytePart {
+            if (match(HIGH_BYTE)) {
+                return ArgImmediate.BytePart.HIGH_BYTE
+            } else if (match(LOW_BYTE)) {
+                return ArgImmediate.BytePart.LOW_BYTE
+            } else {
+                return ArgImmediate.BytePart.WORD
+            }
+        }
+
         val number = parseIntegerLiteral()
         if (number != null) {
-            return ArgImmediate(Resolvable(number)).init(parent, tokenBegin(), tokenEnd())
+            val part = parseBytePart()
+            return ArgImmediate(Resolvable(Triple("'$number'${part.keyword}", 0L, ArgImmediate.BytePart.WORD), part.adjust(number))).init(parent, tokenBegin(), tokenEnd())
         }
 
         val identifier = parseIdentifierString()
+        val identifierBegin = tokenBegin()
         if (identifier != null) {
-            return ArgImmediate(Resolvable(identifier)).init(parent, tokenBegin(), tokenEnd())
+            var offset = 0L
+            if (match(ARRAY_BEGIN)) {
+                val int = parseIntegerLiteral()
+                if (int == null) {
+                    error("Expected offset literal")
+                } else {
+                    offset = int
+                }
+                match(ARRAY_END, "Expected ']'")
+            }
+            val part = parseBytePart()
+            return ArgImmediate(Resolvable(Triple(identifier, offset, part), null)).init(parent, identifierBegin, tokenEnd())
         }
 
         return null
@@ -331,12 +354,12 @@ class AssemblyParser(text:CharSequence, errorContext: ErrorContext) : TokenParse
 
     fun parseArgRegister(parent:Node): ArgRegister? {
         if (match(REGISTER_LITERAL)) {
-            return ArgRegister(Resolvable(Register.values()[tokenText()[1] - '0'])).init(parent, tokenBegin(), tokenEnd())
+            return ArgRegister(Resolvable(null, Register.values()[tokenText()[1] - '0'])).init(parent, tokenBegin(), tokenEnd())
         }
 
         val identifier = parseRegisterIdentifierString()
         if (identifier != null) {
-            return ArgRegister(Resolvable(identifier)).init(parent, tokenBegin(), tokenEnd())
+            return ArgRegister(Resolvable(identifier, null)).init(parent, tokenBegin(), tokenEnd())
         }
 
         return null

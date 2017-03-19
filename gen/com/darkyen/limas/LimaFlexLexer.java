@@ -46,11 +46,11 @@ class LimaFlexLexer {
 
   /* The ZZ_CMAP_A table has 320 entries */
   static final char ZZ_CMAP_A[] = zzUnpackCMap(
-    "\11\0\1\2\1\1\1\37\1\2\1\1\22\0\1\2\3\0\1\25\5\0\1\10\1\26\1\36\1\34\1\0\1"+
-    "\7\2\27\6\24\2\4\1\20\5\0\1\17\1\32\1\30\1\32\1\35\2\32\1\3\1\33\6\3\1\31"+
-    "\2\3\1\23\10\3\1\21\1\0\1\22\1\0\1\3\1\0\1\32\1\30\1\32\1\13\1\14\1\15\1\3"+
-    "\1\33\5\3\1\12\1\31\2\3\1\16\2\3\1\11\5\3\1\5\1\0\1\6\7\0\1\37\242\0\2\37"+
-    "\26\0");
+    "\11\0\1\2\1\1\1\41\1\2\1\1\22\0\1\2\3\0\1\27\5\0\1\10\1\30\1\40\1\36\1\0\1"+
+    "\7\2\31\6\26\2\4\1\20\1\0\1\23\1\0\1\24\1\0\1\17\1\34\1\32\1\34\1\37\2\34"+
+    "\1\3\1\35\6\3\1\33\2\3\1\25\10\3\1\21\1\0\1\22\1\0\1\3\1\0\1\34\1\32\1\34"+
+    "\1\13\1\14\1\15\1\3\1\35\5\3\1\12\1\33\2\3\1\16\2\3\1\11\5\3\1\5\1\0\1\6\7"+
+    "\0\1\41\242\0\2\41\26\0");
 
   /** 
    * Translates DFA states to action switch labels.
@@ -59,13 +59,14 @@ class LimaFlexLexer {
 
   private static final String ZZ_ACTION_PACKED_0 =
     "\1\0\1\1\1\2\1\3\1\4\1\5\1\6\1\1"+
-    "\2\3\1\7\1\10\1\11\1\12\1\3\1\4\2\1"+
-    "\1\4\1\13\1\14\1\4\1\0\1\15\1\16\1\17"+
-    "\2\3\1\20\1\21\1\22\1\23\1\4\1\0\1\3"+
-    "\1\24\1\4\1\17\1\3\1\25\1\3\1\26";
+    "\2\3\1\7\1\10\1\11\1\12\1\13\1\14\1\3"+
+    "\1\4\2\1\1\4\1\15\1\16\1\4\1\0\1\17"+
+    "\1\20\1\21\2\3\1\22\1\23\1\24\1\25\1\4"+
+    "\1\0\1\3\1\26\1\4\1\21\1\3\1\27\1\3"+
+    "\1\30";
 
   private static int [] zzUnpackAction() {
-    int [] result = new int[42];
+    int [] result = new int[44];
     int offset = 0;
     offset = zzUnpackAction(ZZ_ACTION_PACKED_0, offset, result);
     return result;
@@ -90,15 +91,15 @@ class LimaFlexLexer {
   private static final int [] ZZ_ROWMAP = zzUnpackRowMap();
 
   private static final String ZZ_ROWMAP_PACKED_0 =
-    "\0\0\0\40\0\100\0\140\0\200\0\40\0\40\0\240"+
-    "\0\300\0\340\0\40\0\40\0\40\0\40\0\u0100\0\u0120"+
-    "\0\u0140\0\u0160\0\u0180\0\u01a0\0\40\0\u01c0\0\u01c0\0\40"+
-    "\0\u01e0\0\u0200\0\u0220\0\u0240\0\140\0\40\0\u0260\0\u01c0"+
-    "\0\u0280\0\u02a0\0\u02c0\0\u02e0\0\40\0\40\0\u0300\0\140"+
-    "\0\u0320\0\140";
+    "\0\0\0\42\0\104\0\146\0\210\0\42\0\42\0\252"+
+    "\0\314\0\356\0\42\0\42\0\42\0\42\0\42\0\42"+
+    "\0\u0110\0\u0132\0\u0154\0\u0176\0\u0198\0\u01ba\0\42\0\u01dc"+
+    "\0\u01dc\0\42\0\u01fe\0\u0220\0\u0242\0\u0264\0\146\0\42"+
+    "\0\u0286\0\u01dc\0\u02a8\0\u02ca\0\u02ec\0\u030e\0\42\0\42"+
+    "\0\u0330\0\146\0\u0352\0\146";
 
   private static int [] zzUnpackRowMap() {
-    int [] result = new int[42];
+    int [] result = new int[44];
     int offset = 0;
     offset = zzUnpackRowMap(ZZ_ROWMAP_PACKED_0, offset, result);
     return result;
@@ -123,41 +124,41 @@ class LimaFlexLexer {
   private static final String ZZ_TRANS_PACKED_0 =
     "\1\2\2\3\1\4\1\5\1\6\1\7\1\10\1\2"+
     "\1\11\1\4\1\12\3\4\1\13\1\14\1\15\1\16"+
-    "\1\17\1\20\1\21\1\22\1\23\4\4\1\24\1\4"+
-    "\1\25\42\0\2\3\40\0\2\4\4\0\6\4\4\0"+
-    "\2\4\2\0\5\4\1\0\1\4\6\0\1\5\6\0"+
-    "\1\26\2\27\6\0\1\5\2\0\1\5\1\27\1\0"+
-    "\1\27\1\30\1\0\1\26\11\0\1\31\1\32\32\0"+
-    "\2\4\4\0\1\4\1\33\4\4\4\0\2\4\2\0"+
-    "\5\4\1\0\1\4\5\0\2\4\4\0\3\4\1\34"+
-    "\2\4\4\0\2\4\2\0\5\4\1\0\1\4\5\0"+
-    "\2\4\4\0\6\4\4\0\1\4\1\35\2\0\1\35"+
-    "\4\4\1\0\1\4\6\0\1\5\6\0\1\26\2\27"+
-    "\6\0\1\20\2\0\1\20\1\27\1\36\1\27\1\30"+
-    "\1\0\1\26\5\0\1\37\5\0\6\37\4\0\1\37"+
-    "\4\0\4\37\1\0\1\37\6\0\1\5\6\0\3\27"+
-    "\6\0\1\20\2\0\1\23\1\27\1\0\1\27\2\0"+
-    "\1\27\6\0\1\5\6\0\1\26\2\27\6\0\1\20"+
-    "\2\0\1\23\1\40\1\36\1\27\1\30\1\0\1\26"+
-    "\6\0\1\41\17\0\1\41\2\0\1\41\14\0\1\27"+
-    "\6\0\3\27\6\0\1\27\2\0\2\27\1\0\1\27"+
-    "\1\30\1\0\1\27\2\0\1\31\1\0\36\31\10\32"+
-    "\1\42\27\32\3\0\2\4\4\0\2\4\1\43\3\4"+
-    "\4\0\2\4\2\0\5\4\1\0\1\4\5\0\2\4"+
-    "\4\0\4\4\1\44\1\4\4\0\2\4\2\0\5\4"+
-    "\1\0\1\4\5\0\2\37\4\0\6\37\4\0\2\37"+
-    "\2\0\5\37\1\0\1\37\6\0\1\41\6\0\1\45"+
-    "\10\0\1\41\2\0\1\41\5\0\1\45\2\0\7\32"+
-    "\1\46\1\42\27\32\3\0\2\4\4\0\3\4\1\47"+
-    "\2\4\4\0\2\4\2\0\5\4\1\0\1\4\5\0"+
-    "\2\4\4\0\5\4\1\50\4\0\2\4\2\0\5\4"+
-    "\1\0\1\4\5\0\2\4\4\0\4\4\1\51\1\4"+
-    "\4\0\2\4\2\0\5\4\1\0\1\4\5\0\2\4"+
-    "\4\0\5\4\1\52\4\0\2\4\2\0\5\4\1\0"+
-    "\1\4\2\0";
+    "\1\17\1\20\1\21\1\22\1\23\1\24\1\25\4\4"+
+    "\1\26\1\4\1\27\44\0\2\3\42\0\2\4\4\0"+
+    "\6\4\6\0\2\4\2\0\5\4\1\0\1\4\6\0"+
+    "\1\5\6\0\1\30\2\31\10\0\1\5\2\0\1\5"+
+    "\1\31\1\0\1\31\1\32\1\0\1\30\11\0\1\33"+
+    "\1\34\34\0\2\4\4\0\1\4\1\35\4\4\6\0"+
+    "\2\4\2\0\5\4\1\0\1\4\5\0\2\4\4\0"+
+    "\3\4\1\36\2\4\6\0\2\4\2\0\5\4\1\0"+
+    "\1\4\5\0\2\4\4\0\6\4\6\0\1\4\1\37"+
+    "\2\0\1\37\4\4\1\0\1\4\6\0\1\5\6\0"+
+    "\1\30\2\31\10\0\1\22\2\0\1\22\1\31\1\40"+
+    "\1\31\1\32\1\0\1\30\5\0\1\41\5\0\6\41"+
+    "\6\0\1\41\4\0\4\41\1\0\1\41\6\0\1\5"+
+    "\6\0\3\31\10\0\1\22\2\0\1\25\1\31\1\0"+
+    "\1\31\2\0\1\31\6\0\1\5\6\0\1\30\2\31"+
+    "\10\0\1\22\2\0\1\25\1\42\1\40\1\31\1\32"+
+    "\1\0\1\30\6\0\1\43\21\0\1\43\2\0\1\43"+
+    "\14\0\1\31\6\0\3\31\10\0\1\31\2\0\2\31"+
+    "\1\0\1\31\1\32\1\0\1\31\2\0\1\33\1\0"+
+    "\40\33\10\34\1\44\31\34\3\0\2\4\4\0\2\4"+
+    "\1\45\3\4\6\0\2\4\2\0\5\4\1\0\1\4"+
+    "\5\0\2\4\4\0\4\4\1\46\1\4\6\0\2\4"+
+    "\2\0\5\4\1\0\1\4\5\0\2\41\4\0\6\41"+
+    "\6\0\2\41\2\0\5\41\1\0\1\41\6\0\1\43"+
+    "\6\0\1\47\12\0\1\43\2\0\1\43\5\0\1\47"+
+    "\2\0\7\34\1\50\1\44\31\34\3\0\2\4\4\0"+
+    "\3\4\1\51\2\4\6\0\2\4\2\0\5\4\1\0"+
+    "\1\4\5\0\2\4\4\0\5\4\1\52\6\0\2\4"+
+    "\2\0\5\4\1\0\1\4\5\0\2\4\4\0\4\4"+
+    "\1\53\1\4\6\0\2\4\2\0\5\4\1\0\1\4"+
+    "\5\0\2\4\4\0\5\4\1\54\6\0\2\4\2\0"+
+    "\5\4\1\0\1\4\2\0";
 
   private static int [] zzUnpackTrans() {
-    int [] result = new int[832];
+    int [] result = new int[884];
     int offset = 0;
     offset = zzUnpackTrans(ZZ_TRANS_PACKED_0, offset, result);
     return result;
@@ -195,12 +196,12 @@ class LimaFlexLexer {
   private static final int [] ZZ_ATTRIBUTE = zzUnpackAttribute();
 
   private static final String ZZ_ATTRIBUTE_PACKED_0 =
-    "\1\0\1\11\3\1\2\11\3\1\4\11\6\1\1\11"+
+    "\1\0\1\11\3\1\2\11\3\1\6\11\6\1\1\11"+
     "\1\1\1\0\1\11\5\1\1\11\3\1\1\0\2\1"+
     "\2\11\4\1";
 
   private static int [] zzUnpackAttribute() {
-    int [] result = new int[42];
+    int [] result = new int[44];
     int offset = 0;
     offset = zzUnpackAttribute(ZZ_ATTRIBUTE_PACKED_0, offset, result);
     return result;
@@ -503,91 +504,99 @@ class LimaFlexLexer {
           case 1: 
             { return UNKNOWN;
             }
-          case 23: break;
+          case 25: break;
           case 2: 
             { return WHITE_SPACE;
             }
-          case 24: break;
+          case 26: break;
           case 3: 
             { return IDENTIFIER;
             }
-          case 25: break;
+          case 27: break;
           case 4: 
             { return DECIMAL_LITERAL;
             }
-          case 26: break;
+          case 28: break;
           case 5: 
             { return SCOPE_BEGIN;
             }
-          case 27: break;
+          case 29: break;
           case 6: 
             { return SCOPE_END;
             }
-          case 28: break;
+          case 30: break;
           case 7: 
             { return ADDRESS_SPECIFIER;
             }
-          case 29: break;
+          case 31: break;
           case 8: 
             { return GROUP_SEPARATOR;
             }
-          case 30: break;
+          case 32: break;
           case 9: 
             { return ARRAY_BEGIN;
             }
-          case 31: break;
+          case 33: break;
           case 10: 
             { return ARRAY_END;
             }
-          case 32: break;
-          case 11: 
-            { return LABEL_PREFIX;
-            }
-          case 33: break;
-          case 12: 
-            { return COMMA;
-            }
           case 34: break;
-          case 13: 
-            { return HEXADECIMAL_LITERAL;
+          case 11: 
+            { return HIGH_BYTE;
             }
           case 35: break;
-          case 14: 
-            { return LINE_COMMENT;
+          case 12: 
+            { return LOW_BYTE;
             }
           case 36: break;
-          case 15: 
-            { return BLOCK_COMMENT;
+          case 13: 
+            { return LABEL_PREFIX;
             }
           case 37: break;
-          case 16: 
-            { return REGISTER_LITERAL;
+          case 14: 
+            { return COMMA;
             }
           case 38: break;
-          case 17: 
-            { return OCTAL_LITERAL;
+          case 15: 
+            { return HEXADECIMAL_LITERAL;
             }
           case 39: break;
-          case 18: 
-            { return REGISTER_IDENTIFIER;
+          case 16: 
+            { return LINE_COMMENT;
             }
           case 40: break;
-          case 19: 
-            { return BINARY_LITERAL;
+          case 17: 
+            { return BLOCK_COMMENT;
             }
           case 41: break;
-          case 20: 
-            { return DEFINE_MEMORY;
+          case 18: 
+            { return REGISTER_LITERAL;
             }
           case 42: break;
-          case 21: 
-            { return DEFINE_REGISTER;
+          case 19: 
+            { return OCTAL_LITERAL;
             }
           case 43: break;
-          case 22: 
-            { return UNDEFINE_REGISTER;
+          case 20: 
+            { return REGISTER_IDENTIFIER;
             }
           case 44: break;
+          case 21: 
+            { return BINARY_LITERAL;
+            }
+          case 45: break;
+          case 22: 
+            { return DEFINE_MEMORY;
+            }
+          case 46: break;
+          case 23: 
+            { return DEFINE_REGISTER;
+            }
+          case 47: break;
+          case 24: 
+            { return UNDEFINE_REGISTER;
+            }
+          case 48: break;
           default:
             zzScanError(ZZ_NO_MATCH);
           }

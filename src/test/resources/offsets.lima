@@ -1,0 +1,42 @@
+defr $target R1
+defr $return R2
+defr $tmp R3
+
+main {
+	LIL $target handler>
+	LIH $target handler<
+	JWL $return $target
+
+	LIL $target main>
+    LIH $target main<
+    JWL R0 $target
+}
+
+handler {
+	defr $sum R4
+	defr $numbers R5
+
+	def numbers[3] 1 2 3
+	def sum@1024
+	LI $sum 0
+
+	LI $numbers numbers[0]
+	LD $tmp $numbers 0
+	ADD $sum $sum $tmp
+
+	LI $numbers numbers[1]
+    LD $tmp $numbers 0
+    ADD $sum $sum $tmp
+
+    LI $numbers numbers[2]
+    LD $tmp $numbers 0
+    ADD $sum $sum $tmp
+
+    // $sum now contains 1 + 2 + 3, store it in sum
+    LIL $target sum>
+    LIH $target sum<
+
+    ST $target $sum 0
+
+    JWL R0 $return
+}

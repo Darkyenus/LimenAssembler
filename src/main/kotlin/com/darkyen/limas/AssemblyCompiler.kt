@@ -223,7 +223,9 @@ object AssemblyCompiler {
                         is ArgImmediate -> {
                             if (arg.imm.isResolved()) continue@args
 
-                            val resolution = resolveImmediate(arg, arg.imm.identifier)
+                            val (identifier, offset, part) = arg.imm.identifier!!
+
+                            val resolution = resolveImmediate(arg, identifier)
                             if (resolution == null) {
                                 errorContext.error(arg.begin, "Can't resolve immediate identifier ${arg.imm.identifier}")
                                 success = false
@@ -234,7 +236,15 @@ object AssemblyCompiler {
                                     errorContext.warn(arg.begin, "Immediate referencing group scope is probably wrong, as jumping there is probably a bug and value at it's address is undefined")
                                 }
 
-                                arg.imm.resolution = address
+                                if (resolvedToNode !is MemoryDefinition && offset != 0L) {
+                                    errorContext.info(arg.begin, "Referencing offset into something else than memory definition")
+                                }
+
+                                if (resolvedToNode is MemoryDefinition && offset >= resolvedToNode.wordSize) {
+                                    errorContext.warn(arg.begin, "Offset is $offset, but size of ${resolvedToNode.name} is only ${resolvedToNode.wordSize}")
+                                }
+
+                                arg.imm.resolution = part.adjust(address + offset)
                             }
                         }
                     }

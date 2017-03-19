@@ -35,6 +35,9 @@ def                                         {return DEFINE_MEMORY;}
 \[                                          {return ARRAY_BEGIN;}
 \]                                          {return ARRAY_END;}
 
+\<                                          {return HIGH_BYTE;}
+\>                                          {return LOW_BYTE;}
+
 R[0-7]                                      {return REGISTER_LITERAL;}
 
 {IDENTIFIER}                                {return IDENTIFIER;}

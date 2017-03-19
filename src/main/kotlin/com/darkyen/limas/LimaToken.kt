@@ -22,6 +22,8 @@ enum class LimaToken {
 
     ARRAY_BEGIN,
     ARRAY_END,
+    HIGH_BYTE,
+    LOW_BYTE,
 
     BINARY_LITERAL,
     OCTAL_LITERAL,
