@@ -15,7 +15,10 @@
               <K2JVMCompilerArguments />
             </option>
             <option name="_commonCompilerArguments">
-              <DummyImpl />
+              <DummyImpl>
+                <option name="languageVersion" value="1.1" />
+                <option name="apiVersion" value="1.0" />
+              </DummyImpl>
             </option>
           </KotlinCompilerInfo>
         </option>
