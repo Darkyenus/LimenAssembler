@@ -12,6 +12,36 @@ Comments are C-like (that is `//...` for line comment and `/*...*/` for block co
 Instructions are like in specification (see `./LimenAlphaResources/Limen Alpha Programmer's manual.pdf`),
 but without commas between arguments. Whitespace is not significant.
 
+#### Instructions
+See programmers manual for available instructions and their mnemonics.
+Instructions have two types of arguments - immediate and register.
+Register arguments take either register literals or register identifiers, see *Register Definitions*.
+Immediate arguments are numbers internally, so to fill them, use number literals (for arithmetic)
+or identifiers of labels and scopes for addresses. Those can be also addressed, which adds given word offset,
+and both literals and identifiers can be adjusted to take only the high or low byte.
+```
+def fibb[5]@55 1 1 2 3 5
+
+main@0 {
+	// Load 55 into R1 (address of fibb)
+	LI R1 fibb
+	
+	// Does the same as above, but uses register definitions (see below) and indexing
+	defr $spam R1
+	LI $spam fibb[0]
+	undefr $spam
+	
+	// Load 59 into R1 (address of number 5 in fibb)
+	LI R1 fibb[4]
+	
+	// Load whole address of fibb into R1
+	// > (pointing to the right) specifies that you are only interested in low byte
+	// < (pointing to the left) specifies that you are only interested in high byte
+	LIL R1 fibb>
+	LIH R1 fibb<
+}
+```
+
 #### Labels
 This is a label: `-foobar`. In scope where it appears (and in any children scopes), this binds the address of next object
 (instruction/memory definition) to the identifier `foobar`, which may then be used as an immediate argument to instructions.
@@ -90,7 +120,5 @@ undefr $return_value
 ```
 
 ### Further development TODO's
-- Allow to take only high/low byte of the identifier
-- Allow to statically "index" defined word arrays
 - Add constant definition
 - Add more warnings
