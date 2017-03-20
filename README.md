@@ -19,6 +19,9 @@ Register arguments take either register literals or register identifiers, see *R
 Immediate arguments are numbers internally, so to fill them, use number literals (for arithmetic)
 or identifiers of labels and scopes for addresses. Those can be also addressed, which adds given word offset,
 and both literals and identifiers can be adjusted to take only the high or low byte.
+
+Some jump instructions take relative address offset. For those, addresses are always automatically subtracted,
+so that the jump goes into a predictable position.
 ```
 def fibb[5]@55 1 1 2 3 5
 

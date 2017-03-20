@@ -8,8 +8,8 @@ main {
 	JWL $return $target
 
 	LIL $target main>
-    LIH $target main<
-    JWL R0 $target
+	LIH $target main<
+	JWL R0 $target
 }
 
 handler {
@@ -25,18 +25,18 @@ handler {
 	ADD $sum $sum $tmp
 
 	LI $numbers numbers[1]
-    LD $tmp $numbers 0
-    ADD $sum $sum $tmp
+	LD $tmp $numbers 0
+	ADD $sum $sum $tmp
 
-    LI $numbers numbers[2]
-    LD $tmp $numbers 0
-    ADD $sum $sum $tmp
+	LI $numbers numbers[2]
+	LD $tmp $numbers 0
+	ADD $sum $sum $tmp
 
-    // $sum now contains 1 + 2 + 3, store it in sum
-    LIL $target sum>
-    LIH $target sum<
+	// $sum now contains 1 + 2 + 3, store it in sum
+	LIL $target sum>
+	LIH $target sum<
 
-    ST $target $sum 0
+	ST $target $sum 0
 
-    JWL R0 $return
+	JWL R0 $return
 }
